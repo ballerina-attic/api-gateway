@@ -258,8 +258,9 @@ Output :
 
 **Update Order** 
 ```
-curl -H "Authorization: Basic Ym9iOnh5eg==" -X PUT -d '{ "Order": {"Name": "XYZ", "Description": "Updated order."}}' \
-"http://localhost:9090/ordermgt/order/100500" -H "Content-Type:application/json"
+curl -H "Authorization: Basic Ym9iOnh5eg==" -X PUT -d '{ "Order": {"Name": "XYZ", "Description" \
+: "Updated order."}}' "http://localhost:9090/ordermgt/order/100500" \
+-H "Content-Type:application/json"
 
 Output: 
 {"Order":{"ID":"100500","Name":"XYZ","Description":"Updated order."}}
