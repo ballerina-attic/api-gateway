@@ -1,4 +1,4 @@
-# Ballerina API Gateway  
+# API Gateway  
 [API Gateway](http://microservices.io/patterns/apigateway.html) a server that act as an API front-end, receives API requests, enforces throttling and security policies, passes requests to the back-end service and then passes the response back to the requester.
 
 > In this guide you will learn about building a API Gateway for a web service. 
