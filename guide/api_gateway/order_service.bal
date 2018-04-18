@@ -36,7 +36,7 @@ endpoint http:SecureListener listener {
         authentication:{enabled:true}
     }
 }
-service<http:Service> e_shopping bind listener {
+service<http:Service> eShopService bind listener {
 
     @Description {value:"Resource that handles the HTTP POST requests that are directed
      to the path '/order' to create a new Order."}
