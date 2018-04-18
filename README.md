@@ -13,16 +13,13 @@ The following are the sections available in this guide.
 
 ## What you’ll build 
  
-To understanding how you can build a API gateway for RESTful web service using Ballerina, let’s consider a real world use case of an order management scenario of an online retail application with added security. 
-We can model the order management scenario as a RESTful web service; 'OrderMgtService',  which accepts different HTTP request for order management tasks such as order creation, retrieval, updating and deletion.
-The following figure illustrates all the required functionalities of the OrderMgt RESTful web service that we need to build. 
+To understanding how you can build a API gateway for RESTful web service using Ballerina, let’s consider a real world use case of ordering items from e-shopping website for authorized users. 
+The following figure illustrates how the Ballerina API gateway can use with RESTful service. 
 
 ![api_gateway](images/api_gateway.png "API Gateway")
 
-- **Create Order** : To place a new order you can use the HTTP POST message with Auth header that contains the order details, which is sent to the URL `http://xyz.retail.com/order`.The response from the service contains an HTTP 201 Created message with the location header pointing to the newly created resource `http://xyz.retail.com/order/123456`. 
-- **Retrieve Order** : You can retrieve the order details by sending an HTTP GET request with Auth header to the appropriate URL which includes the order ID.`http://xyz.retail.com/order/<orderId>` 
-- **Update Order** : You can update an existing order by sending a HTTP PUT request with Auth header and the content for the updated order. 
-- **Delete Order** : An existing order can be deleted by sending a HTTP DELETE request with Auth header to the specific URL`http://xyz.retail.com/order/<orderId>`. 
+- **Create Order** : To place a new order you can use the HTTP POST message with the order details to `localhost:9090/e-shop/order`
+NOTE: You need to pass "Authorization" header with the request.
 
 ## Prerequisites
  
@@ -44,15 +41,15 @@ We can add security layer for Ballerina services by adding security parameters t
 
 ```
 api-gateway-sample
-  └── src
+  └── guide
       └── api_gateway
-      |    ├── order_mgt_service.bal
+      |    ├── order_service.bal
       |     └── test
-      |        └── order_mgt_service_test.bal          
+      |        └── order_service_test.bal          
       └── ballerina.conf
 ```
 
-- Once you created your package structure, go to the sample src directory and run the following command to initialize your Ballerina project.
+- Once you created your package structure, go to the sample `guide` directory and run the following command to initialize your Ballerina project.
 
 ```bash
    $ballerina init
@@ -60,28 +57,27 @@ api-gateway-sample
 
   The above command will initialize the project with a `Ballerina.toml` file and `.ballerina` implementation directory that contain a list of packages in the current directory.
 
-- You can add desired usernames and passwords inside the ballerina.conf file. We have added two sample users as follows,
+- You can add desired usernames and passwords inside the `ballerina.conf` file. We have added two sample users as follows,
 ```ballerina
 ["b7a.users"]
 
 ["b7a.users.alice"]
 password="abc"
-scopes="scope1"
+scopes="customer"
 
 ["b7a.users.bob"]
 password="xyz"
-scopes="scope2"
+scopes="customer"
 ```
+
  Now let us look into the implementation of the order management with the managed security layer.
  
-##### order_mgt_service.bal
+##### order_service.bal
 ```ballerina
-mport ballerina/http;
+import ballerina/http;
 import ballerina/auth;
 
-// Define the basic auth as the authentication method 
-http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic",
-    authProvider:"config"};
+http:AuthProvider basicAuthProvider = {id:"basic1",scheme:"basic",authProvider:"config"};
 
 // The endpoint used here is 'endpoints:ApiEndpoint', which by default tries to
 // authenticate and authorize each request.
@@ -92,112 +88,36 @@ endpoint http:SecureListener listener {
     authProviders:[basicAuthProvider]
 };
 
-// Order management is done using an in memory map.
-map<json> ordersMap;
-
-// Add the configuration to the service using ServiceConfig annotation
+// Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
-    // Base path to the service
-    basePath:"/ordermgt",
-    
-    // Add the authConfig parameter to the ServiceConf annotation to protect 
-    // the service with basic auth
+    basePath:"/e-shop",
     authConfig:{
         authProviders:["basic1"],
-        authentication:{enabled:true},
-        scopes:["scope2"]
+        authentication:{enabled:true}
     }
 }
-service<http:Service> order_mgt bind listener {
-
-    @Description {value:"Resource that handles the HTTP GET requests that are directed
-    to a specific order using path '/orders/<orderID>'"}
-    @http:ResourceConfig {
-        methods:["GET"],
-        path:"/order/{orderId}"
-    }
-    findOrder(endpoint client, http:Request req, string orderId) {
-        // Find the requested order from the map and retrieve it in JSON format.
-        json? payload = ordersMap[orderId];
-        http:Response response;
-        if (payload == null) {
-            payload = "Order : " + orderId + " cannot be found.";
-        }
-
-        // Set the JSON payload in the outgoing response message.
-        response.setJsonPayload(payload);
-
-        // Send response to the client.
-        _ = client -> respond(response);
-    }
+service<http:Service> e_shopping bind listener {
 
     @Description {value:"Resource that handles the HTTP POST requests that are directed
-     to the path '/orders' to create a new Order."}
+     to the path '/order' to create a new Order."}
+    // Add authConfig param to the ResourceConfig to limit the access for scopes
     @http:ResourceConfig {
         methods:["POST"],
-        path:"/order"
+        path:"/order",
+        // Authorize only users with "create_orders" scope
+        authConfig:{
+            scopes:["create_orders"]
+        }
     }
     addOrder(endpoint client, http:Request req) {
+        // Retrieve the order details from the request
         json orderReq = check req.getJsonPayload();
-        string orderId = orderReq.Order.ID.toString() but { () => "" };
-        ordersMap[orderId] = orderReq;
+        // Extract the Order ID from the request from the order, use "1" for ID if Nill()
+        string orderId = orderReq.Order.ID.toString() but { () => "1" };
 
         // Create response message.
         json payload = {status:"Order Created.", orderId:orderId};
         http:Response response;
-        response.setJsonPayload(payload);
-
-        // Set 201 Created status code in the response message.
-        response.statusCode = 201;
-        // Set 'Location' header in the response message.
-        // This can be used by the client to locate the newly added order.
-        response.setHeader("Location", "http://localhost:9090/ordermgt/order/" + orderId);
-
-        // Send response to the client.
-        _ = client -> respond(response);
-    }
-
-    @Description {value:"Resource that handles the HTTP PUT requests that are directed
-    to the path '/orders' to update an existing Order."}
-    @http:ResourceConfig {
-        methods:["PUT"],
-        path:"/order/{orderId}"
-    }
-    updateOrder(endpoint client, http:Request req, string orderId) {
-        json updatedOrder = check req.getJsonPayload();
-
-        // Find the order that needs to be updated and retrieve it in JSON format.
-        json existingOrder = ordersMap[orderId];
-
-        // Updating existing order with the attributes of the updated order.
-        if (existingOrder != null) {
-            existingOrder.Order.Name = updatedOrder.Order.Name;
-            existingOrder.Order.Description = updatedOrder.Order.Description;
-            ordersMap[orderId] = existingOrder;
-        } else {
-            existingOrder = "Order : " + orderId + " cannot be found.";
-        }
-
-        http:Response response;
-        // Set the JSON payload to the outgoing response message to the client.
-        response.setJsonPayload(existingOrder);
-        // Send response to the client.
-        _ = client -> respond(response);
-    }
-
-    @Description {value:"Resource that handles the HTTP DELETE requests, which are
-    directed to the path '/orders/<orderId>' to delete an existing Order."}
-    @http:ResourceConfig {
-        methods:["DELETE"],
-        path:"/order/{orderId}"
-    }
-    cancelOrder(endpoint client, http:Request req, string orderId) {
-        http:Response response;
-        // Remove the requested order from the map.
-        _ = ordersMap.remove(orderId);
-
-        json payload = "Order : " + orderId + " removed.";
-        // Set a generated payload with order status.
         response.setJsonPayload(payload);
 
         // Send response to the client.
