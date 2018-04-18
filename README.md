@@ -33,9 +33,7 @@ NOTE: You need to pass "Authorization" header with the request.
 
 ## Developing the service 
 
-We can add security layer for Ballerina services by adding security parameters to `@ServiceConfig` annotation. 
-
-- We can get started with a Ballerina service; 'OrderMgtService', which is the Auth protected RESTful service that serves the order management request. OrderMgtService can have multiple resources and each resource is dedicated for a specific order management functionality.
+- We can get started with a Ballerina service; 'eShopService', which is the Auth protected RESTful service that serves the order request.
 
 - You can decide the package structure for the service and then create the service in the corresponding directory structure. For example, suppose that you are going to use the package name 'api_gateway', then you need to create the following directory structure and create the service file using the text editor or IDE that you use. 
 
