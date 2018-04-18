@@ -96,7 +96,7 @@ endpoint http:SecureListener listener {
         authentication:{enabled:true}
     }
 }
-service<http:Service> e_shopping bind listener {
+service<http:Service> eShopService bind listener {
 
     @Description {value:"Resource that handles the HTTP POST requests that are directed
      to the path '/order' to create a new Order."}
@@ -106,7 +106,7 @@ service<http:Service> e_shopping bind listener {
         path:"/order",
         // Authorize only users with "create_orders" scope
         authConfig:{
-            scopes:["create_orders"]
+            scopes:["customer"]
         }
     }
     addOrder(endpoint client, http:Request req) {
@@ -133,7 +133,7 @@ service<http:Service> e_shopping bind listener {
 
 ### Invoking the RESTful service 
 
-You can run the RESTful service that you developed above, in your local environment. You need to have the Ballerina installation in you local machine and simply point to the <ballerina>/bin/ballerina binary to execute all the following steps.  
+You can run the e-shop RESTful service that you developed above, in your local environment. You need to have the Ballerina installation in you local machine and simply point to the <ballerina>/bin/ballerina binary to execute all the following steps.  
 
 1. As the first step you can build a Ballerina executable archive (.balx) of the service that we developed above, using the following command. It points to the directory in which the service we developed above located and it will create an executable binary out of that. Navigate to the `<SAMPLE_ROOT>/src/` folder and run the following command. 
 
@@ -155,55 +155,28 @@ ballerina: deploying service(s) in 'target/api_gateway.balx'
 ballerina: started HTTP/WS server connector 0.0.0.0:9090
 ```
 
-4. You can test the functionality of the OrderMgt RESTFul service by sending HTTP request for each order management operation. For example, we have used the curl commands to test each operation of OrderMgtService as follows. 
+4. You can test the functionality of the e-shop RESTFul service by sending HTTP request. For example, we have used the curl command to test operation of e-shop as follows. 
 
-NOTE: Use base64 encode to encode the `<username>:<password>` with the username and password pair which is in the `ballerina.conf` file. You can use https://www.base64encode.org/ to base64 encode username and password. We will use `Ym9iOnh5eg==` as the base64 encoded value for `Bob`.
+NOTE: Use base64 encode to encode the `<username>:<password>` with the username and password pair which is in the `ballerina.conf` file. You can use https://www.base64encode.org/ to base64 encode username and password. We will use `YWxpY2U6YWJj` as the base64 encoded value for `alice:abc`.
+
 **Create Order** 
 ```
-curl -H "Authorization: Basic Ym9iOnh5eg==" -X POST -d \
+curl -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://localhost:9090/ordermgt/order" -H "Content-Type:application/json"
+"http://localhost:9090/e-store/order" -H "Content-Type:application/json"
 
 Output :  
 {"status":"Order Created.","orderId":"100500"} 
 ```
 
-**Retrieve Order** 
-```
-curl -H "Authorization: Basic Ym9iOnh5eg==" "http://localhost:9090/ordermgt/order/100500" 
-
-Output : 
-{"Order":{"ID":"100500","Name":"XYZ","Description":"Sample order."}}
-```
-
-**Update Order** 
-```
-curl -H "Authorization: Basic Ym9iOnh5eg==" -X PUT -d '{ "Order": {"Name": "XYZ", "Description" \
-: "Updated order."}}' "http://localhost:9090/ordermgt/order/100500" \
--H "Content-Type:application/json"
-
-Output: 
-{"Order":{"ID":"100500","Name":"XYZ","Description":"Updated order."}}
-```
-
-**Cancel Order** 
-```
-curl -H "Authorization: Basic Ym9iOnh5eg==" -X DELETE "http://localhost:9090/ordermgt/order/100500"
-
-Output:
-"Order : 100500 removed."
-```
-
 ### Writing unit tests 
 
-In Ballerina, the unit test cases should be in the same package inside a folder named as 'test'. The naming convention should be as follows,
+In Ballerina, the unit test cases should be in the same package inside a folder named as 'tests'. The naming convention should be as follows,
 
-* Test functions should contain test prefix.
-  * e.g.: testResourceAddOrder()
+* Test functions should contain test prefix with annotation `@test:Config` before the test function.
+  * e.g.: testWithCorrectAuth()
 
-This guide contains unit test cases for each resource available in the 'order_mgt_service.bal'.
-
-To run the unit tests, go to the sample src directory and run the following command.
+To run the unit tests, navigate to the `guide` directory and run the following command.
 ```bash
    $ballerina test
 ```
@@ -232,24 +205,29 @@ containers, you just need to put the corresponding docker annotations on your se
 ```ballerina
 import ballerina/http;
 import ballerinax/docker;
+import ballerina/auth;
 
 @docker:Config {
     registry:"ballerina.guides.io",
     name:"api_gateway",
     tag:"v1.0"
 }
+http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authProvider:"config"};
 
-endpoint http:Listener listener {
-    port:9090
+endpoint http:SecureListener listener {
+    port:9090,
+    authProviders:[basicAuthProvider]
 };
 
-// Order management is done using an in memory map.
-// Add some sample orders to 'orderMap' at startup.
-map<json> ordersMap;
+@http:ServiceConfig {
+    basePath:"/e-shop",
+    authConfig:{
+        authProviders:["basic1"],
+        authentication:{enabled:true}
+    }
+}
+service<http:Service> eShopService bind listener {
 
-@Description {value:"API Gateway service."}
-@http:ServiceConfig {basePath:"/ordermgt"}
-service<http:Service> order_mgt bind listener {
 ``` 
 
 - Now you can build a Ballerina executable archive (.balx) of the service that we developed above, using the following command. It points to the service file that we developed above and it will create an executable binary out of that. 
@@ -274,8 +252,9 @@ This will also create the corresponding docker image using the docker annotation
 - You can access the service using the same curl commands that we've used above. 
  
 ```
-   curl -v -X POST -d '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-   "http://localhost:9090/ordermgt/order" -H "Content-Type:application/json"    
+   curl -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d '{ "Order": \ 
+   { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
+   "http://localhost:9090/e-store/order" -H "Content-Type:application/json"    
 ```
 
 
@@ -290,10 +269,9 @@ So you don't need to explicitly create docker images prior to deploying it on Ku
 ##### order_mgt_service.bal
 
 ```ballerina
-package api_gateway;
-
 import ballerina/http;
 import ballerinax/kubernetes;
+import ballerina/auth;
 
 @kubernetes:Ingress {
     hostname:"ballerina.guides.io",
@@ -314,14 +292,7 @@ import ballerinax/kubernetes;
 endpoint http:Listener listener {
     port:9090
 };
-
-// Order management is done using an in memory map.
-// Add some sample orders to 'orderMap' at startup.
-map<json> ordersMap;
-
-@Description {value:"RESTful service."}
-@http:ServiceConfig {basePath:"/ordermgt"}
-service<http:Service> order_mgt bind listener {    
+service<http:Service> eShopService bind listener {    
 ``` 
 
 - Here we have used ``  @kubernetes:Deployment `` to specify the docker image name which will be created as part of building this service. 
@@ -364,9 +335,9 @@ This will also create the corresponding docker image and the Kubernetes artifact
 Node Port:
  
 ```
-curl -v -X POST -d \
+curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://<Minikube_host_IP>:<Node_Port>/ordermgt/order" -H "Content-Type:application/json"  
+"http://<Minikube_host_IP>:<Node_Port>/e-shop/order" -H "Content-Type:application/json"  
 ```
 
 Ingress:
@@ -379,7 +350,7 @@ Add `/etc/hosts` entry to match hostname.
 Access the service 
 
 ``` 
-curl -v -X POST -d \
+curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://ballerina.guides.io/ordermgt/order" -H "Content-Type:application/json" 
+"http://ballerina.guides.io/e-shop/order" -H "Content-Type:application/json" 
 ```
