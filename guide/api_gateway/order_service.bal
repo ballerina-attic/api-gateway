@@ -38,7 +38,6 @@ endpoint http:SecureListener listener {
 }
 service<http:Service> e_shopping bind listener {
 
-
     @Description {value:"Resource that handles the HTTP POST requests that are directed
      to the path '/order' to create a new Order."}
     // Add authConfig param to the ResourceConfig to limit the access for scopes
