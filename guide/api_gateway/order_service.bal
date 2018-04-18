@@ -46,7 +46,7 @@ service<http:Service> e_shopping bind listener {
         path:"/order",
         // Authorize only users with "create_orders" scope
         authConfig:{
-            scopes:["create_orders"]
+            scopes:["customer"]
         }
     }
     addOrder(endpoint client, http:Request req) {
