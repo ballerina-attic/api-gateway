@@ -16,7 +16,7 @@ The following are the sections available in this guide.
 To understanding how you can build a API gateway for RESTful web service using Ballerina, let’s consider a real world use case of ordering items from e-shopping website for authorized users. 
 The following figure illustrates how the Ballerina API gateway can use with RESTful service. 
 
-![api_gateway](images/api_gateway.png "API Gateway")
+![api_gateway](images/api_gateway.svg "API Gateway")
 
 - **Create Order** : To place a new order you can use the HTTP POST message with the order details to `localhost:9090/e-shop/order`
 NOTE: You need to pass "Authorization" header with the request.
