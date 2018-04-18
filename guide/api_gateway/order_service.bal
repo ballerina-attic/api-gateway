@@ -23,7 +23,7 @@ http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authProvider
 // authenticate and authorize each request.
 // The developer has the option to override the authentication and authorization
 // at service and resource level.
-endpoint http:SecureListener listener {
+endpoint http:APIListener listener {
     port:9090,
     authProviders:[basicAuthProvider]
 };
