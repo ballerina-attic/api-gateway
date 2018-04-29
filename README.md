@@ -65,7 +65,7 @@ password="xyz"
 scopes="customer"
 ```
 
-- Then open the terminal and navigate to `restful-service/guide` and run Ballerina project initializing toolkit.
+- Then open the terminal and navigate to `api-gateway/guide` and run Ballerina project initializing toolkit.
 ```bash
    $ ballerina init
 ```
