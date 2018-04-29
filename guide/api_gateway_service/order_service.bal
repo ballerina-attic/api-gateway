@@ -36,7 +36,7 @@ endpoint http:APIListener listener {
         authentication:{enabled:true}
     }
 }
-service<http:Service> eShopService bind listener {
+service<http:Service> eShop bind listener {
 
     @Description {value:"Resource that handles the HTTP POST requests that are directed
      to the path '/order' to create a new Order."}
