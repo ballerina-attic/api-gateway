@@ -20,7 +20,7 @@ import ballerina/http;
 @test:BeforeSuite
 function beforeFunc() {
     // Start the 'order_mgt' service before running the test.
-    _ = test:startServices("api_gateway");
+    _ = test:startServices("api_gateway_service");
 }
 
 endpoint http:Client clientEP {
@@ -69,5 +69,5 @@ function testWithIncorrectAuth() {
 @test:AfterSuite
 function afterFunc() {
     // Stop the 'order_mgt' service after running the test.
-    test:stopServices("restful_service");
+    test:stopServices("api_gateway_service");
 }
