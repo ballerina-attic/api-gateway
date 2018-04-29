@@ -24,7 +24,7 @@ function beforeFunc() {
 }
 
 endpoint http:Client clientEP {
-    targets:[{url:"http://localhost:9090/e-shop"}]
+    url: "http://localhost:9090/e-shop"
 };
 
 @test:Config
@@ -34,17 +34,19 @@ function testWithCorrectAuth() {
     http:Request request;
     request.addHeader("Authorization", "Basic YWxpY2U6YWJj");
     // Construct the request payload.
-    json payload = {"Order":{"ID":"100500", "Name":"XYZ", "Description":"Sample order."}};
+    json payload = { "Order": { "ID": "100500", "Name": "XYZ", "Description":
+    "Sample order." } };
     request.setJsonPayload(payload);
     // Send 'POST' request and obtain the response.
-    http:Response response = check clientEP -> post("/order", request);
+    http:Response response = check clientEP->post("/order", request = request);
     // Expected response code is 200.
     test:assertEquals(response.statusCode, 200,
         msg = "addOrder resource did not respond with expected response code!");
     // Check whether the response is as expected.
     json resPayload = check response.getJsonPayload();
     test:assertEquals(resPayload.toString(),
-        "{\"status\":\"Order Created.\",\"orderId\":\"100500\"}", msg = "Response mismatch!");
+        "{\"status\":\"Order Created.\",\"orderId\":\"100500\"}", msg =
+        "Response mismatch!");
 }
 
 @test:Config
@@ -54,10 +56,11 @@ function testWithIncorrectAuth() {
     http:Request request;
     request.addHeader("Authorization", "Basic c2lsdmE6d3dlcg==");
     // Construct the request payload.
-    json payload = {"Order":{"ID":"100500", "Name":"XYZ", "Description":"Sample order."}};
+    json payload = { "Order": { "ID": "100500", "Name": "XYZ", "Description":
+    "Sample order." } };
     request.setJsonPayload(payload);
     // Send 'POST' request and obtain the response.
-    http:Response response = check clientEP -> post("/order", request);
+    http:Response response = check clientEP->post("/order", request = request);
     // Expected response code is 200.
     test:assertEquals(response.statusCode, 401,
         msg = "addOrder resource did not respond with expected response code!");

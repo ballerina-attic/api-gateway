@@ -53,7 +53,7 @@ service<http:Service> eShopService bind listener {
         // Retrieve the order details from the request
         json orderReq = check req.getJsonPayload();
         // Extract the Order ID from the request from the order, use "1" for ID if Nill()
-        string orderId = orderReq.Order.ID.toString() but { () => "1" };
+        string orderId = orderReq.Order.ID.toString();
 
         // Create response message.
         json payload = {status:"Order Created.", orderId:orderId};
