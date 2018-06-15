@@ -38,7 +38,7 @@ function testWithCorrectAuth() {
     "Sample order." } };
     request.setJsonPayload(payload);
     // Send 'POST' request and obtain the response.
-    http:Response response = check clientEP->post("/order", request = request);
+    http:Response response = check clientEP->post("/order", request);
     // Expected response code is 200.
     test:assertEquals(response.statusCode, 200,
         msg = "addOrder resource did not respond with expected response code!");
@@ -60,7 +60,7 @@ function testWithIncorrectAuth() {
     "Sample order." } };
     request.setJsonPayload(payload);
     // Send 'POST' request and obtain the response.
-    http:Response response = check clientEP->post("/order", request = request);
+    http:Response response = check clientEP->post("/order", request);
     // Expected response code is 200.
     test:assertEquals(response.statusCode, 401,
         msg = "addOrder resource did not respond with expected response code!");
