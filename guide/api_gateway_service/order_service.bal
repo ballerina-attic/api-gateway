@@ -17,7 +17,7 @@
 import ballerina/http;
 import ballerina/auth;
 
-http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authProvider:"config"};
+http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
 
 // The endpoint used here is 'endpoints:ApiEndpoint', which by default tries to
 // authenticate and authorize each request.
