@@ -24,7 +24,7 @@ function beforeFunc() {
 }
 
 endpoint http:Client clientEP {
-    url: "http://localhost:9090/e-shop"
+    url: "http://localhost:9090/e-store"
 };
 
 @test:Config
