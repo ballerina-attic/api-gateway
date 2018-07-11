@@ -304,7 +304,7 @@ endpoint http:Listener listener {
     port:9090
 };
 
-service<http:Service> eShop bind listener {    
+service<http:Service> eShop bind listener {
 ``` 
 
 - Here we have used the `@kubernetes:Deployment` annotation to specify the name of the Docker image which will be created as part of building this service.
@@ -392,7 +392,7 @@ $ curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 
 ## Observability 
 Ballerina comes with support for observability built-in to the language.
-Observability is disabled by default. It can be enabled by adding the following configurations to `ballerina.conf` file in `api-gateway/guide/`.
+Observability is disabled by default. It can be enabled by adding the following configurations to `ballerina.conf` file in `api-gateway/guide/`. A sample configuration file can be found in `api-gateway/guide/api_gateway_service`.
 
 ```ballerina
 [b7a.observability]
@@ -406,7 +406,11 @@ enabled=true
 enabled=true
 ```
 
+```
+   $ ballerina run api_gateway_service/ --config api_gateway_service/ballerina.conf
+```
 > NOTE: The above configuration is the minimum configuration needed to enable tracing and metrics. With these configurations, default values are loaded for the rest of the configuration parameters of metrics and tracing.
+To start the ballerina service using the configuration file, run the following command.
 
 ### Tracing 
 
@@ -439,7 +443,7 @@ Follow the following steps to use tracing with Ballerina.
 
 - Navigate to `api-gateway/guide` and run the service using following command
 ```
-   $ ballerina run api_gateway_service
+   $ ballerina run api_gateway_service --config api_gateway_service/ballerina.conf
 ```
 
 - Observe the tracing using Jaeger UI using following URL
@@ -453,19 +457,14 @@ Follow the below steps to set up Prometheus and view metrics for the `eShop` ser
 
 - You can add the following configurations for metrics. Note that these configurations are optional if you already have the basic configuration in `ballerina.conf` as described under the `Observability` section.
 
-```ballerina
+```
    [b7a.observability.metrics]
    enabled=true
-   provider="micrometer"
-
-   [b7a.observability.metrics.micrometer]
-   registry.name="prometheus"
+   reporter="prometheus"
 
    [b7a.observability.metrics.prometheus]
-   port=9700
-   hostname="0.0.0.0"
-   descriptions=false
-   step="PT1M"
+   port=9797
+   host="0.0.0.0"
 ```
 
 - Create a file `prometheus.yml` inside `/tmp/` location. Add the below configurations to the `prometheus.yml` file.
@@ -487,7 +486,12 @@ Follow the below steps to set up Prometheus and view metrics for the `eShop` ser
    $ docker run -p 19090:9090 -v /tmp/prometheus.yml:/etc/prometheus/prometheus.yml \
    prom/prometheus
 ```
-   
+
+- Navigate to `api-gateway/guide` and run the restful-service using following command
+```
+   $ ballerina run api_gateway_service/ --config api_gateway_service/ballerina.conf
+```
+
 - You can access Prometheus at the following URL
 ```
    http://localhost:19090/
