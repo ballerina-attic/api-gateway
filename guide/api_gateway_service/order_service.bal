@@ -14,8 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/auth;
+import ballerina/http;
+import ballerina/log;
 
 http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
 
@@ -62,5 +63,7 @@ service<http:Service> eShop bind listener {
 
         // Send response to the client.
         _ = client -> respond(response);
+
+        log:printInfo("Order created: " + orderId);
     }
 }

@@ -124,6 +124,8 @@ service<http:Service> eShopService bind listener {
 
         // Send response to the client.
         _ = client -> respond(response);
+
+        log:printInfo("Order created: " + orderId);
     }
 }
 
@@ -497,11 +499,6 @@ Follow the below steps to set up Prometheus and view metrics for the `eShop` ser
    http://localhost:19090/
 ```
 
-> NOTE:  Ballerina will by default have following metrics for HTTP server connector. You can enter following expression in Prometheus UI
-> -  http_requests_total
-> -  http_response_time
-
-
 ### Logging
 
 Ballerina has a log package for logging to the console. You can import ballerina/log package and start logging. The following section will describe how to search, analyze, and visualize logs in real time using Elastic Stack.
@@ -554,7 +551,7 @@ output {
 }  
 ```
 
-ii) Save the above `logstash.conf` inside a directory named as `{SAMPLE_ROOT}\pipeline`
+ii) Save the above `logstash.conf` inside a directory named as `{SAMPLE_ROOT}/pipeline`
      
 iii) Start the Logstash container, replace the `{SAMPLE_ROOT}` with your directory name
      
@@ -577,7 +574,7 @@ output.logstash:
 ```
 >NOTE : Modify the ownership of `filebeat.yml` file using `$chmod go-w filebeat.yml`
 
-ii) Save the above `filebeat.yml` inside a directory named as `{SAMPLE_ROOT}\filebeat`   
+ii) Save the above `filebeat.yml` inside a directory named as `{SAMPLE_ROOT}/filebeat`
         
 iii) Start the Logstash container, replace the `{SAMPLE_ROOT}` with your directory name
      
