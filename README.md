@@ -241,8 +241,8 @@ This will also create the corresponding docker image using the docker annotation
         api_gateway_service:0.0.0
     ballerina: started HTTP/WS endpoint 0.0.0.0:9090
     ballerina: stopped HTTP/WS endpoint 0.0.0.0:9090
-            ✔ testWithIncorrectAuth
-            ✔ testWithCorrectAuth
+            [pass] testWithIncorrectAuth
+            [pass] testWithCorrectAuth
 
             2 passing
             0 failing
@@ -328,8 +328,8 @@ This will also create the corresponding Docker image and the Kubernetes artifact
        api_gateway_service:0.0.0
    ballerina: started HTTP/WS endpoint 0.0.0.0:9090
    ballerina: stopped HTTP/WS endpoint 0.0.0.0:9090
-            ✔ testWithIncorrectAuth
-            ✔ testWithCorrectAuth
+            [pass] testWithIncorrectAuth
+            [pass] testWithCorrectAuth
 
             2 passing
             0 failing
