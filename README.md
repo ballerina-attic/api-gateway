@@ -416,7 +416,7 @@ enabled=true
 ```
 
 ```
-   $ ballerina run api_gateway_service/ --config api_gateway_service/ballerina.conf
+   $ ballerina run --config api_gateway_service/ballerina.conf api_gateway_service/
 ```
 > NOTE: The above configuration is the minimum configuration needed to enable tracing and metrics. With these configurations, default values are loaded for the rest of the configuration parameters of metrics and tracing.
 To start the ballerina service using the configuration file, run the following command.
@@ -450,9 +450,9 @@ Follow the following steps to use tracing with Ballerina.
    -p14268:14268 jaegertracing/all-in-one:latest
 ```
 
-- Navigate to `api-gateway/guide` and run the service using following command
+- Navigate to `api-gateway/guide` and run the restful-service using the following command
 ```
-   $ ballerina run api_gateway_service --config api_gateway_service/ballerina.conf
+   $ ballerina run --config api_gateway_service/ballerina.conf api_gateway_service
 ```
 
 - Observe the tracing using Jaeger UI using following URL
@@ -496,9 +496,9 @@ Follow the below steps to set up Prometheus and view metrics for the `eShop` ser
    prom/prometheus
 ```
 
-- Navigate to `api-gateway/guide` and run the restful-service using following command
+- Navigate to `api-gateway/guide` and run the restful-service using the following command
 ```
-   $ ballerina run api_gateway_service/ --config api_gateway_service/ballerina.conf
+   $ ballerina run --config api_gateway_service/ballerina.conf api_gateway_service
 ```
 
 - You can access Prometheus at the following URL
