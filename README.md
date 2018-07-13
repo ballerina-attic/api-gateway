@@ -282,6 +282,8 @@ Therefore there's no need to explicitly create Docker images prior to deploying 
 
 - We need to import `ballerinax/kubernetes` and use `@kubernetes` annotations as shown below to enable Kubernetes deployment for the service we developed above.
 
+> NOTE: Linux users can use Minikube to try this out locally.
+
 ##### order_service.bal
 
 ```ballerina
@@ -313,6 +315,10 @@ service<http:Service> eShop bind listener {
 - We have also specified `@kubernetes:Service` so that it will create a Kubernetes service which will expose the Ballerina service that is running on a Pod.
 - Additionally we have used `@kubernetes:Ingress` which is the external interface to access your service (with path `/` and host name `ballerina.guides.io`).
 
+If you are using Minikube, you need to set a couple of additional attributes to the `@kubernetes:Deployment` annotation.
+- `dockerCertPath` - The path to the certificates directory of Minikube (e.g., `/home/ballerina/.minikube/certs`).
+- `dockerHost` - The host for the running cluster (e.g., `tcp://192.168.99.100:2376`). The IP address of the cluster can be found by running the `minikube ip` command.
+ 
 - Now you can build a Ballerina executable archive (.balx) of the service that we developed above, using the following command.
 This will also create the corresponding Docker image and the Kubernetes artifacts using the Kubernetes annotations that you have configured above.
   
@@ -376,10 +382,11 @@ $ curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
 "http://<Minikube_host_IP>:<Node_Port>/e-store/order" -H "Content-Type:application/json"
 ```
+If you are using Minikube, you should use the IP address of the Minikube cluster obtained by running the `minikube ip` command. The port should be the node port given when running the `kubectl get services` command.
 
 Ingress:
 
-Add `/etc/hosts` entry to match hostname. 
+Add `/etc/hosts` entry to match hostname. For Minikube, the IP address should be the IP address of the cluster.
 ``` 
 127.0.0.1 ballerina.guides.io
 ```
