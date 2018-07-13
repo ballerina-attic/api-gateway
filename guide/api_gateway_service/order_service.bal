@@ -14,8 +14,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-import ballerina/http;
 import ballerina/auth;
+import ballerina/http;
+import ballerina/log;
 
 http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
 
@@ -30,7 +31,7 @@ endpoint http:APIListener listener {
 
 // Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
-    basePath:"/e-shop",
+    basePath:"/e-store",
     authConfig:{
         authProviders:["basic1"],
         authentication:{enabled:true}
@@ -58,9 +59,11 @@ service<http:Service> eShop bind listener {
         // Create response message.
         json payload = {status:"Order Created.", orderId:orderId};
         http:Response response;
-        response.setJsonPayload(payload);
+        response.setJsonPayload(untaint payload);
 
         // Send response to the client.
         _ = client -> respond(response);
+
+        log:printInfo("Order created: " + orderId);
     }
 }
