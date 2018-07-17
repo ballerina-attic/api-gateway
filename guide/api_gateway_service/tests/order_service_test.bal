@@ -17,12 +17,6 @@
 import ballerina/test;
 import ballerina/http;
 
-@test:BeforeSuite
-function beforeFunc() {
-    // Start the 'order_mgt' service before running the test.
-    _ = test:startServices("api_gateway_service");
-}
-
 endpoint http:Client clientEP {
     url: "http://localhost:9090/e-store"
 };
@@ -64,10 +58,4 @@ function testWithIncorrectAuth() {
     // Expected response code is 200.
     test:assertEquals(response.statusCode, 401,
         msg = "addOrder resource did not respond with expected response code!");
-}
-
-@test:AfterSuite
-function afterFunc() {
-    // Stop the 'order_mgt' service after running the test.
-    test:stopServices("api_gateway_service");
 }
