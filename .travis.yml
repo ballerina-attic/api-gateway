@@ -30,6 +30,12 @@ script:
 
 - unzip -q $DISTRIBUTION_NAME.zip
 
+- ls
+
+- ls $(pwd)/$DISTRIBUTION_NAME/
+
+- ls $(pwd)/$DISTRIBUTION_NAME/bin
+
 - export PATH=$PATH:$(pwd)/$DISTRIBUTION_NAME/bin
 
 - ballerina version
