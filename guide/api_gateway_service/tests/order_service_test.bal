@@ -39,7 +39,7 @@ function testWithCorrectAuth() {
     // Check whether the response is as expected.
     json resPayload = check response.getJsonPayload();
     test:assertEquals(resPayload.toString(),
-        "{\"status\":\"Order Created.\",\"orderId\":\"100500\"}", msg =
+        "{\"status\":\"Order Created.\", \"orderId\":\"100500\"}", msg =
         "Response mismatch!");
 }
 

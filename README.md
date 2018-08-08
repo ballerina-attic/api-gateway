@@ -153,7 +153,7 @@ $ curl -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
 "http://localhost:9090/e-store/order" -H "Content-Type:application/json"
 
 Output :  
-{"status":"Order Created.","orderId":"100500"} 
+{"status":"Order Created.", "orderId":"100500"}
 ```
 
 ### Writing unit tests 
