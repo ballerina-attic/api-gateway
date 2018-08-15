@@ -1,9 +1,9 @@
 [![Build Status](https://travis-ci.org/ballerina-guides/api-gateway.svg?branch=master)](https://travis-ci.org/ballerina-guides/api-gateway)
 
-# API Gateway  
-[API Gateway](http://microservices.io/patterns/apigateway.html) a server that act as an API front-end, receives API requests, enforces throttling and security policies, passes requests to the back-end service and then passes the response back to the requestor.
+# Building an API Gateway  
+[API Gateway](http://microservices.io/patterns/apigateway.html) is a server that acts as an API front-end, receives API requests, enforces throttling and security policies, passes requests to the back-end service and then passes the response back to the requestor.
 
-> In this guide you will learn about building an API Gateway for a web service.
+> In this guide you will learn how to build an API Gateway for a web service.
 
 The following are the sections available in this guide.
 
@@ -15,13 +15,14 @@ The following are the sections available in this guide.
 
 ## What you’ll build 
  
-To understand how you can build an API gateway for RESTful web services using Ballerina, let’s consider a real world use case of ordering items from an e-shopping website for authorized users.
-The following figure illustrates how the Ballerina API gateway can be used with a RESTful service.
+To understand how you can build an API Gateway for RESTful web services using Ballerina, let’s consider a real world use case of ordering items from an e-shopping website for authorized users.
+
+The following figure illustrates how the API Gateway created using Ballerina can be used with a RESTful service.
 
 ![api_gateway](images/api_gateway.svg "API Gateway")
 
 - **Create Order** : To place a new order you can send an HTTP POST request with the order details to `localhost:9090/e-shop/order`.
-> NOTE: You need to set the `Authorization` header in the request.
+> **NOTE**: You need to set the `Authorization` header in the request.
 
 ## Prerequisites
  
@@ -35,7 +36,7 @@ The following figure illustrates how the Ballerina API gateway can be used with 
 
 ## Implementation
 
-> If you want to skip the basics, you can download the Git repo and continue from the "Testing" section.
+> If you want to skip the basics, you can download the GitHub repo and continue from the "Testing" section.
 
 ### Create the project structure
 
@@ -66,6 +67,7 @@ scopes="customer"
 ```
 
 - Then open the terminal and navigate to `api-gateway/guide` and run Ballerina project initializing toolkit.
+
 ```bash
    $ ballerina init
 ```
