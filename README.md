@@ -88,44 +88,44 @@ http:AuthProvider basicAuthProvider ={id:"basic1", scheme:"basic", authProvider:
 // The developer has the option to override the authentication and authorization
 // at service and resource level.
 endpoint http:APIListener listener {
-    port:9090,
-    authProviders:[basicAuthProvider]
+    port: 9090,
+    authProviders: [basicAuthProvider]
 };
 
 // Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
-    basePath:"/e-store",
-    authConfig:{
-        authProviders:["basic1"],
-        authentication:{enabled:true}
+    basePath: "/e-store",
+    authConfig: {
+        authProviders: ["basic1"],
+        authentication: { enabled: true }
     }
 }
-service<http:Service> eShopService bind listener {
+service<http:Service> eShop bind listener {
 
-    @Description {value:"Resource that handles the HTTP POST requests that are directed
-         to the path '/order' to create a new order."}
+    @Description { value: "Resource that handles the HTTP POST requests that are directed
+     to the path '/order' to create a new Order." }
     // Add authConfig param to the ResourceConfig to limit the access for scopes
     @http:ResourceConfig {
-        methods:["POST"],
-        path:"/order",
+        methods: ["POST"],
+        path: "/order",
         // Authorize only users with "create_orders" scope
-        authConfig:{
-            scopes:["customer"]
+        authConfig: {
+            scopes: ["customer"]
         }
     }
     addOrder(endpoint client, http:Request req) {
         // Retrieve the order details from the request
         json orderReq = check req.getJsonPayload();
         // Extract the Order ID from the request from the order, use "1" for ID if Nill()
-        string orderId = orderReq.Order.ID.toString() but { () => "1" };
+        string orderId = orderReq.Order.ID.toString();
 
         // Create response message.
-        json payload = {status:"Order Created.", orderId:orderId};
+        json payload = { status: "Order Created.", orderId: orderId };
         http:Response response;
         response.setJsonPayload(untaint payload);
 
         // Send response to the client.
-        _ = client -> respond(response);
+        _ = client->respond(response);
 
         log:printInfo("Order created: " + orderId);
     }
@@ -208,9 +208,15 @@ import ballerinax/docker;
 http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
 
 @docker:Config {
-    registry:"ballerina.guides.io",
-    name:"api_gateway",
-    tag:"v1.0"
+    registry: "ballerina.guides.io",
+    name: "api_gateway",
+    tag: "v1.0"
+}
+@docker:CopyFiles {
+    files: [{
+        source: "ballerina.conf",
+        target: "ballerina.conf"
+    }]
 }
 endpoint http:APIListener listener {
     port:9090,
@@ -261,7 +267,7 @@ This will also create the corresponding docker image using the docker annotation
 - Once you have successfully built the Docker image, you can run it using the `docker run` command which was given at the end of the build output.
 
 ```   
-   $ docker run -d -p 9090:9090 ballerina.guides.io/api_gateway_service:v1.0
+   $ docker run -d -p 9090:9090 ballerina.guides.io/api_gateway:v1.0
 ```
 
   Here we are running a Docker container with the flag `-p <host_port>:<container_port>` to map the container's port 9090 to the host's port 9090 so that the service will be accessible through the same port on the host.
