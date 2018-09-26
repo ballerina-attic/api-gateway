@@ -17,37 +17,49 @@
 import ballerina/auth;
 import ballerina/http;
 import ballerina/log;
+//import ballerinax/docker;
 
-http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
+http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
 
+//@docker:Config {
+//    registry: "ballerina.guides.io",
+//    name: "api_gateway",
+//    tag: "v1.0"
+//}
+//@docker:CopyFiles {
+//    files: [{
+//        source: "ballerina.conf",
+//        target: "ballerina.conf"
+//    }]
+//}
 // The endpoint used here is 'endpoints:ApiEndpoint', which by default tries to
 // authenticate and authorize each request.
 // The developer has the option to override the authentication and authorization
 // at service and resource level.
 endpoint http:APIListener listener {
-    port:9090,
-    authProviders:[basicAuthProvider]
+    port: 9090,
+    authProviders: [basicAuthProvider]
 };
 
 // Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
-    basePath:"/e-store",
-    authConfig:{
-        authProviders:["basic1"],
-        authentication:{enabled:true}
+    basePath: "/e-store",
+    authConfig: {
+        authProviders: ["basic1"],
+        authentication: { enabled: true }
     }
 }
 service<http:Service> eShop bind listener {
 
-    @Description {value:"Resource that handles the HTTP POST requests that are directed
-     to the path '/order' to create a new Order."}
+    @Description { value: "Resource that handles the HTTP POST requests that are directed
+     to the path '/order' to create a new Order." }
     // Add authConfig param to the ResourceConfig to limit the access for scopes
     @http:ResourceConfig {
-        methods:["POST"],
-        path:"/order",
+        methods: ["POST"],
+        path: "/order",
         // Authorize only users with "create_orders" scope
-        authConfig:{
-            scopes:["customer"]
+        authConfig: {
+            scopes: ["customer"]
         }
     }
     addOrder(endpoint client, http:Request req) {
@@ -57,12 +69,12 @@ service<http:Service> eShop bind listener {
         string orderId = orderReq.Order.ID.toString();
 
         // Create response message.
-        json payload = {status:"Order Created.", orderId:orderId};
+        json payload = { status: "Order Created.", orderId: orderId };
         http:Response response;
         response.setJsonPayload(untaint payload);
 
         // Send response to the client.
-        _ = client -> respond(response);
+        _ = client->respond(response);
 
         log:printInfo("Order created: " + orderId);
     }
