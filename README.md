@@ -21,7 +21,7 @@ The following figure illustrates how the API Gateway created using Ballerina can
 
 ![api_gateway](images/api_gateway.svg "API Gateway")
 
-- **Create Order** : To place a new order you can send an HTTP POST request with the order details to `localhost:9090/e-shop/order`.
+- **Create Order** : To place a new order you can send an HTTP POST request with the order details to `localhost:9090/e-store/order`.
 > **NOTE**: You need to set the `Authorization` header in the request.
 
 ## Prerequisites
@@ -224,7 +224,7 @@ endpoint http:APIListener listener {
 };
 
 @http:ServiceConfig {
-    basePath:"/e-shop",
+    basePath:"/e-store",
     authConfig:{
         authProviders:["basic1"],
         authentication:{enabled:true}
