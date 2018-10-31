@@ -18,6 +18,7 @@ import ballerina/auth;
 import ballerina/http;
 import ballerina/log;
 //import ballerinax/docker;
+//import ballerinax/kubernetes;
 
 http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
 
@@ -28,6 +29,24 @@ http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStore
 //}
 //@docker:CopyFiles {
 //    files: [{
+//        source: "ballerina.conf",
+//        target: "ballerina.conf"
+//    }]
+//}
+
+//@kubernetes:Ingress {
+//    hostname: "ballerina.guides.io",
+//    name: "api_gateway",
+//    path: "/"
+//}
+//@kubernetes:Service {
+//    serviceType: "NodePort",
+//    name: "api_gateway"
+//}
+//@kubernetes:Deployment {
+//    image: "ballerina.guides.io/api_gateway:v1.0",
+//    name: "api_gateway",
+//    copyFiles: [{
 //        source: "ballerina.conf",
 //        target: "ballerina.conf"
 //    }]
