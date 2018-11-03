@@ -276,9 +276,9 @@ This will also create the corresponding docker image using the docker annotation
 - You can invoke the service using the same cURL commands that we've used above.
  
 ```
-   $ curl -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d '{ "Order": \
-   { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-   "http://localhost:9090/e-store/order" -H "Content-Type:application/json"    
+   $ curl -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
+     '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
+     "http://localhost:9090/e-store/order" -H "Content-Type:application/json"    
 ```
 
 
@@ -300,17 +300,21 @@ import ballerina/http;
 import ballerinax/kubernetes;
 
 @kubernetes:Ingress {
-    hostname:"ballerina.guides.io",
-    name:"ballerina-guides-restful-service",
-    path:"/"
+    hostname: "ballerina.guides.io",
+    name: "api_gateway",
+    path: "/"
 }
 @kubernetes:Service {
-    serviceType:"NodePort",
-    name:"ballerina-guides-restful-service"
+    serviceType: "NodePort",
+    name: "api_gateway"
 }
 @kubernetes:Deployment {
-    image:"ballerina.guides.io/api_gateway:v1.0",
-    name:"ballerina-guides-restful-service"
+    image: "ballerina.guides.io/api_gateway:v1.0",
+    name: "api_gateway",
+    copyFiles: [{
+        source: "ballerina.conf",
+        target: "ballerina.conf"
+    }]
 }
 endpoint http:Listener listener {
     port:9090
@@ -357,15 +361,15 @@ This will also create the corresponding Docker image and the Kubernetes artifact
             @kubernetes:Docker 			     - complete 3/3
 
             Run following command to deploy kubernetes artifacts:
-            kubectl apply -f ./target/api_gateway_service/kubernetes
+            kubectl apply -f ./target/kubernetes/api_gateway_service
 ```
 
 - You can verify that the Docker image that we specified in `@kubernetes:Deployment` was created, by using the `docker images` command.
-- Also the Kubernetes artifacts related to our service will be generated in `./target/api_gateway_service/kubernetes`.
+- Also the Kubernetes artifacts related to our service will be generated in `./target/kubernetes/api_gateway_service`.
 - Now you can create the Kubernetes deployment using:
 
 ```
-   $ kubectl apply -f ./target/api_gateway_service/kubernetes 
+   $ kubectl apply -f ./target/kubernetes/api_gateway_service
  
    deployment.extensions "ballerina-guides-api-gateway" created
    ingress.extensions "ballerina-guides-restful-service" created
