@@ -18,10 +18,15 @@ import ballerina/auth;
 import ballerina/http;
 import ballerina/log;
 //import ballerinax/docker;
-//import ballerinax/kubernetes;
+import ballerinax/kubernetes;
 
 http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
-
+http:ServiceSecureSocket secureSocket = {
+    keyStore: {
+        path: "${ballerina.home}/bre/security/ballerinaKeystore.p12",
+        password: "ballerina"
+    }
+};
 //@docker:Config {
 //    registry: "ballerina.guides.io",
 //    name: "api_gateway",
@@ -51,14 +56,11 @@ http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStore
 //        target: "ballerina.conf"
 //    }]
 //}
-// The endpoint used here is 'endpoints:ApiEndpoint', which by default tries to
-// authenticate and authorize each request.
+// The listener used here is 'http:Listener', which tries to authenticate and authorize each request.
 // The developer has the option to override the authentication and authorization
 // at service and resource level.
-endpoint http:APIListener listener {
-    port: 9090,
-    authProviders: [basicAuthProvider]
-};
+listener http:Listener apiListener = new(9090, config = { authProviders: [basicAuthProvider],
+        secureSocket: secureSocket });
 
 // Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
@@ -68,10 +70,10 @@ endpoint http:APIListener listener {
         authentication: { enabled: true }
     }
 }
-service<http:Service> eShop bind listener {
+service eShop on apiListener {
 
-    @Description { value: "Resource that handles the HTTP POST requests that are directed
-     to the path '/order' to create a new Order." }
+    # Resource that handles the HTTP POST requests that are directed
+    # to the path '/order' to create a new Order.
     // Add authConfig param to the ResourceConfig to limit the access for scopes
     @http:ResourceConfig {
         methods: ["POST"],
@@ -81,20 +83,29 @@ service<http:Service> eShop bind listener {
             scopes: ["customer"]
         }
     }
-    addOrder(endpoint client, http:Request req) {
+    resource function addOrder(http:Caller caller, http:Request req) {
         // Retrieve the order details from the request
-        json orderReq = check req.getJsonPayload();
-        // Extract the Order ID from the request from the order, use "1" for ID if Nill()
-        string orderId = orderReq.Order.ID.toString();
+        var orderReq = req.getJsonPayload();
 
-        // Create response message.
-        json payload = { status: "Order Created.", orderId: orderId };
-        http:Response response;
-        response.setJsonPayload(untaint payload);
+        if (orderReq is json) {
+            // Extract the Order ID from the request from the order, use "1" for ID if Nill()
+            string orderId = orderReq.Order.ID.toString();
 
-        // Send response to the client.
-        _ = client->respond(response);
+            // Create response message.
+            json payload = { status: "Order Created.", orderId: untaint orderId };
 
-        log:printInfo("Order created: " + orderId);
+            // Send response to the client.
+            var result = caller->respond(payload);
+            if (result is error) {
+                log:printError("Error while responding", err = result);
+            }
+            log:printInfo("Order created: " + orderId);
+        } else if (orderReq is error) {
+            log:printError("Invalid order request");
+            var result = caller->respond({ "^error": "Invalid order request" });
+            if (result is error) {
+                log:printError("Error while responding");
+            }
+        }
     }
 }
