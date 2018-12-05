@@ -78,19 +78,20 @@ Now let us look into the implementation of the order management with the managed
  
 ##### order_service.bal
 ```ballerina
-import ballerina/http;
 import ballerina/auth;
+import ballerina/http;
+import ballerina/log;
 
-http:AuthProvider basicAuthProvider ={id:"basic1", scheme:"basic", authProvider:"config"};
-
-// The endpoint used here is 'endpoints:ApiEndpoint', which by default tries to
-// authenticate and authorize each request.
-// The developer has the option to override the authentication and authorization
-// at service and resource level.
-endpoint http:APIListener listener {
-    port: 9090,
-    authProviders: [basicAuthProvider]
+http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
+http:ServiceSecureSocket secureSocket = {
+    keyStore: {
+        path: "${ballerina.home}/bre/security/ballerinaKeystore.p12",
+        password: "ballerina"
+    }
 };
+
+listener http:Listener apiListener = new(9090, config = { authProviders: [basicAuthProvider],
+        secureSocket: secureSocket });
 
 // Add the authConfig in the ServiceConfig annotation to protect the service using Auth
 @http:ServiceConfig {
@@ -100,10 +101,10 @@ endpoint http:APIListener listener {
         authentication: { enabled: true }
     }
 }
-service<http:Service> eShop bind listener {
+service eShop on apiListener {
 
-    @Description { value: "Resource that handles the HTTP POST requests that are directed
-     to the path '/order' to create a new Order." }
+    # Resource that handles the HTTP POST requests that are directed
+    # to the path '/order' to create a new Order.
     // Add authConfig param to the ResourceConfig to limit the access for scopes
     @http:ResourceConfig {
         methods: ["POST"],
@@ -113,27 +114,36 @@ service<http:Service> eShop bind listener {
             scopes: ["customer"]
         }
     }
-    addOrder(endpoint client, http:Request req) {
+    resource function addOrder(http:Caller caller, http:Request req) {
         // Retrieve the order details from the request
-        json orderReq = check req.getJsonPayload();
-        // Extract the Order ID from the request from the order, use "1" for ID if Nill()
-        string orderId = orderReq.Order.ID.toString();
+        var orderReq = req.getJsonPayload();
 
-        // Create response message.
-        json payload = { status: "Order Created.", orderId: orderId };
-        http:Response response;
-        response.setJsonPayload(untaint payload);
+        if (orderReq is json) {
+            // Extract the Order ID from the request from the order, use "1" for ID if Nill()
+            string orderId = orderReq.Order.ID.toString();
 
-        // Send response to the client.
-        _ = client->respond(response);
+            // Create response message.
+            json payload = { status: "Order Created.", orderId: untaint orderId };
 
-        log:printInfo("Order created: " + orderId);
+            // Send response to the client.
+            var result = caller->respond(payload);
+            if (result is error) {
+                log:printError("Error while responding", err = result);
+            }
+            log:printInfo("Order created: " + orderId);
+        } else if (orderReq is error) {
+            log:printError("Invalid order request");
+            var result = caller->respond({ "^error": "Invalid order request" });
+            if (result is error) {
+                log:printError("Error while responding");
+            }
+        }
     }
 }
 
 ```
 
-- With that we've completed the development of OrderMgtService with Auth authentication. 
+- With that we have completed the development of OrderMgtService with Auth authentication. 
 
 ## Testing 
 
@@ -150,9 +160,9 @@ $ ballerina run api_gateway_service
 
 **Create Order** 
 ```
-$ curl -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
+$ curl -k -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://localhost:9090/e-store/order" -H "Content-Type:application/json"
+"https://localhost:9090/e-store/order" -H "Content-Type:application/json"
 
 Output :  
 {"status":"Order Created.", "orderId":"100500"}
@@ -205,7 +215,13 @@ import ballerina/auth;
 import ballerina/http;
 import ballerinax/docker;
 
-http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStoreProvider:"config"};
+http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
+http:ServiceSecureSocket secureSocket = {
+    keyStore: {
+        path: "${ballerina.home}/bre/security/ballerinaKeystore.p12",
+        password: "ballerina"
+    }
+};
 
 @docker:Config {
     registry: "ballerina.guides.io",
@@ -218,10 +234,8 @@ http:AuthProvider basicAuthProvider = {id:"basic1", scheme:"basic", authStorePro
         target: "ballerina.conf"
     }]
 }
-endpoint http:APIListener listener {
-    port:9090,
-    authProviders:[basicAuthProvider]
-};
+listener http:Listener apiListener  = new(9090, config = {authProviders: [basicAuthProvider],
+                                                            secureSocket:secureSocket});
 
 @http:ServiceConfig {
     basePath:"/e-store",
@@ -230,7 +244,7 @@ endpoint http:APIListener listener {
         authentication:{enabled:true}
     }
 }
-service<http:Service> eShop bind listener {
+service eShop on apiListener {
 
 ``` 
 
@@ -276,9 +290,9 @@ This will also create the corresponding docker image using the docker annotation
 - You can invoke the service using the same cURL commands that we've used above.
  
 ```
-   $ curl -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
+   $ curl -k -H "Authorization: Basic YWxpY2U6YWJj" -X POST -d \
      '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-     "http://localhost:9090/e-store/order" -H "Content-Type:application/json"    
+     "https://localhost:9090/e-store/order" -H "Content-Type:application/json"    
 ```
 
 
@@ -316,11 +330,11 @@ import ballerinax/kubernetes;
         target: "ballerina.conf"
     }]
 }
-endpoint http:Listener listener {
-    port:9090
-};
+listener http:Listener apiListener  = new(9090, config = {authProviders: [basicAuthProvider],
+                                                            secureSocket:secureSocket});
 
-service<http:Service> eShop bind listener {
+service eShop on apiListener {
+
 ``` 
 
 - Here we have used the `@kubernetes:Deployment` annotation to specify the name of the Docker image which will be created as part of building this service.
@@ -390,9 +404,9 @@ This will also create the corresponding Docker image and the Kubernetes artifact
 Node Port:
  
 ```
-$ curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
+$ curl -k  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://<Minikube_host_IP>:<Node_Port>/e-store/order" -H "Content-Type:application/json"
+"https://<Minikube_host_IP>:<Node_Port>/e-store/order" -H "Content-Type:application/json"
 ```
 If you are using Minikube, you should use the IP address of the Minikube cluster obtained by running the `minikube ip` command. The port should be the node port given when running the `kubectl get services` command.
 
@@ -406,9 +420,9 @@ Add `/etc/hosts` entry to match hostname. For Minikube, the IP address should be
 Invoke the service
 
 ``` 
-$ curl  -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
+$ curl -k -H "Authorization: Basic YWxpY2U6YWJj" -v -X POST -d \
 '{ "Order": { "ID": "100500", "Name": "XYZ", "Description": "Sample order."}}' \
-"http://ballerina.guides.io/e-store/order" -H "Content-Type:application/json"
+"https://ballerina.guides.io/e-store/order" -H "Content-Type:application/json"
 ```
 
 ## Observability 
