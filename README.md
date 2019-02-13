@@ -152,7 +152,7 @@ service eShop on apiListener {
 
 You can run the RESTful service that you developed above, in your local environment. Open your terminal and navigate to `api-gateway/guide`, and execute the following command.
 ```
-$ ballerina run api_gateway_service
+$ ballerina run api_gateway
 ```
 
 - You can test the functionality of the e-shop RESTFul service by sending HTTP requests. For example, here's a cURL command for sending a new request for an order.
