@@ -79,11 +79,17 @@ Now let us look into the implementation of the order management with the managed
  
 ##### order_service.bal
 ```ballerina
+
 import ballerina/auth;
 import ballerina/http;
 import ballerina/log;
+import ballerinax/kubernetes;
 
-http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
+http:AuthProvider basicAuthProvider = {
+    id: "basic1",
+    scheme: "BASIC_AUTH",
+    authStoreProvider: "CONFIG_AUTH_STORE"
+};
 http:ServiceSecureSocket secureSocket = {
     keyStore: {
         path: "${ballerina.home}/bre/security/ballerinaKeystore.p12",
@@ -91,6 +97,9 @@ http:ServiceSecureSocket secureSocket = {
     }
 };
 
+// The listener used here is 'http:Listener', which tries to authenticate and authorize each request.
+// The developer has the option to override the authentication and authorization
+// at service and resource level.
 listener http:Listener apiListener = new(9090, config = { authProviders: [basicAuthProvider],
         secureSocket: secureSocket });
 
@@ -99,7 +108,9 @@ listener http:Listener apiListener = new(9090, config = { authProviders: [basicA
     basePath: "/e-store",
     authConfig: {
         authProviders: ["basic1"],
-        authentication: { enabled: true }
+        authentication: {
+            enabled: true
+        }
     }
 }
 service eShop on apiListener {
@@ -124,7 +135,10 @@ service eShop on apiListener {
             string orderId = orderReq.Order.ID.toString();
 
             // Create response message.
-            json payload = { status: "Order Created.", orderId: untaint orderId };
+            json payload = {
+                status: "Order Created.",
+                orderId: untaint orderId
+            };
 
             // Send response to the client.
             var result = caller->respond(payload);
@@ -132,16 +146,17 @@ service eShop on apiListener {
                 log:printError("Error while responding", err = result);
             }
             log:printInfo("Order created: " + orderId);
-        } else if (orderReq is error) {
+        } else {
             log:printError("Invalid order request");
-            var result = caller->respond({ "^error": "Invalid order request" });
+            var result = caller->respond({
+                "^error": "Invalid order request"
+            });
             if (result is error) {
                 log:printError("Error while responding");
             }
         }
     }
 }
-
 ```
 
 - With that we have completed the development of OrderMgtService with Auth authentication. 
