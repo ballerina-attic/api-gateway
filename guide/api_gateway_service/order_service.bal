@@ -20,7 +20,7 @@ import ballerina/log;
 //import ballerinax/docker;
 import ballerinax/kubernetes;
 
-http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "basic", authStoreProvider: "config" };
+http:AuthProvider basicAuthProvider = { id: "basic1", scheme: "BASIC_AUTH", authStoreProvider: "CONFIG_AUTH_STORE" };
 http:ServiceSecureSocket secureSocket = {
     keyStore: {
         path: "${ballerina.home}/bre/security/ballerinaKeystore.p12",
@@ -100,7 +100,7 @@ service eShop on apiListener {
                 log:printError("Error while responding", err = result);
             }
             log:printInfo("Order created: " + orderId);
-        } else if (orderReq is error) {
+        } else {
             log:printError("Invalid order request");
             var result = caller->respond({ "^error": "Invalid order request" });
             if (result is error) {
